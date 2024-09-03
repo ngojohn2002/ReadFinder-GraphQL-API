@@ -1,18 +1,15 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import App from "./App";
 import { ApolloProvider } from "@apollo/client";
-import { ApolloClient, InMemoryCache } from "@apollo/client";
-import 'bootstrap/dist/css/bootstrap.min.css';
+import client from "./apolloClient"; // Assuming this is where your Apollo Client is set up
+import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
 
-const client = new ApolloClient({
-  uri: "/graphql",
-  cache: new InMemoryCache(),
-});
+const rootElement = document.getElementById("root");
+const root = createRoot(rootElement);
 
-ReactDOM.render(
+root.render(
   <ApolloProvider client={client}>
     <App />
-  </ApolloProvider>,
-  document.getElementById("root")
+  </ApolloProvider>
 );
