@@ -5,17 +5,20 @@ import LoginForm from "./components/LoginForm";
 import SignupForm from "./components/SignupForm";
 import SearchBooks from "./pages/SearchBooks";
 import SavedBooks from "./pages/SavedBooks";
+import ErrorBoundary from "./components/ErrorBoundary"; // Import ErrorBoundary
 
 function App() {
   return (
     <Router>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<SearchBooks />} />
-        <Route path="/saved" element={<SavedBooks />} />
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/signup" element={<SignupForm />} />
-      </Routes>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<SearchBooks />} />
+          <Route path="/saved" element={<SavedBooks />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/signup" element={<SignupForm />} />
+        </Routes>
+      </ErrorBoundary>
     </Router>
   );
 }
