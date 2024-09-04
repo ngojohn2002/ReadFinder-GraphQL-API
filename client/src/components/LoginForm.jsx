@@ -40,7 +40,7 @@ const LoginForm = () => {
             placeholder="Your email"
             value={userFormData.email}
             onChange={handleInputChange}
-            autocomplete="current-email"
+            autoComplete="current-email"
           />
           <input
             type="password"
@@ -48,7 +48,7 @@ const LoginForm = () => {
             placeholder="Your password"
             value={userFormData.password}
             onChange={handleInputChange}
-            autocomplete="current-password"
+            autoComplete="current-password"
           />
           <button type="submit">Submit</button>
         </form>

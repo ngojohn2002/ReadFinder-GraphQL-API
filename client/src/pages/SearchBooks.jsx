@@ -68,6 +68,7 @@ const SearchBooks = () => {
             placeholder="Search for a book"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
+            autoComplete="on"
           />
           <button type="submit">Search</button>
         </form>

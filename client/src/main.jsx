@@ -13,7 +13,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 // Create an HTTP link to the GraphQL server
 const httpLink = createHttpLink({
-  uri: "/graphql", // Ensure this matches your server's endpoint
+  uri: "http://localhost:3001/graphql", // Ensure this matches your server's endpoint
 });
 
 // Set up authentication link to include token in headers

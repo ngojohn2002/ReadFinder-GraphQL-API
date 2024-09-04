@@ -1,42 +1,37 @@
 const express = require("express");
-const path = require("path");
 const { ApolloServer } = require("@apollo/server");
-const { expressMiddleware } = require("@apollo/server/express4"); // Correct usage for Express middleware
-const { json } = require("body-parser");
+const { expressMiddleware } = require("@apollo/server/express4");
+const cors = require("cors");
+const bodyParser = require("body-parser");
 const db = require("./config/connection");
 const { authMiddleware } = require("./utils/auth");
-const { typeDefs, resolvers } = require("./schemas");
+const typeDefs = require("./schemas/typeDefs");
+const resolvers = require("./schemas/resolvers");
 
-const app = express();
 const PORT = process.env.PORT || 3001;
+const app = express();
 
+// Middleware setup
+app.use(cors());
+app.use(bodyParser.json());
+
+// Apollo Server setup
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => authMiddleware(req),
+  context: ({ req }) => authMiddleware({ req }),
 });
 
+// Start Apollo Server
 async function startServer() {
   await server.start();
 
   app.use(
     "/graphql",
-    json(),
     expressMiddleware(server, {
-      context: ({ req }) => authMiddleware(req),
+      context: ({ req }) => authMiddleware({ req }),
     })
   );
-
-  app.use(express.urlencoded({ extended: true }));
-  app.use(express.json());
-
-  if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.join(__dirname, "../client/build")));
-  }
-
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../client/build/index.html"));
-  });
 
   db.once("open", () => {
     app.listen(PORT, () => {

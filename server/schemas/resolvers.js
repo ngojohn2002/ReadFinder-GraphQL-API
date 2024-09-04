@@ -1,4 +1,4 @@
-const { AuthenticationError } = require("@apollo/server/errors"); // Correct error handling import
+const { AuthenticationError } = require("@apollo/server/errors");
 const { User } = require("../models");
 const { signToken } = require("../utils/auth");
 
@@ -11,7 +11,6 @@ const resolvers = {
       throw new AuthenticationError("You need to be logged in!");
     },
   },
-
   Mutation: {
     addUser: async (parent, args) => {
       const user = await User.create(args);
