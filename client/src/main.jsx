@@ -9,6 +9,7 @@ import {
 } from "@apollo/client";
 import { setContext } from "@apollo/client/link/context";
 import App from "./App";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 // Create an HTTP link to the GraphQL server
 const httpLink = createHttpLink({
