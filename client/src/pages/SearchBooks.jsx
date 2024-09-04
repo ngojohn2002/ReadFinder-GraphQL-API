@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { SAVE_BOOK } from "../utils/mutations";
-import Auth from "../utils/auth";
 
 const SearchBooks = () => {
   const [searchedBooks, setSearchedBooks] = useState([]);
@@ -16,7 +15,9 @@ const SearchBooks = () => {
     }
 
     try {
-      const response = await searchGoogleBooks(searchInput);
+      const response = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=${searchInput}`
+      );
 
       if (!response.ok) {
         throw new Error("something went wrong!");
@@ -30,7 +31,6 @@ const SearchBooks = () => {
         title: book.volumeInfo.title,
         description: book.volumeInfo.description,
         image: book.volumeInfo.imageLinks?.thumbnail || "",
-        link: book.volumeInfo.infoLink,
       }));
 
       setSearchedBooks(bookData);
@@ -43,52 +43,69 @@ const SearchBooks = () => {
   const handleSaveBook = async (bookId) => {
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
 
-    const token = Auth.loggedIn() ? Auth.getToken() : null;
-
-    if (!token) {
-      return false;
-    }
-
     try {
       await saveBook({
-        variables: { bookData: { ...bookToSave } },
+        variables: { input: bookToSave },
       });
+      alert("Book saved!");
     } catch (err) {
       console.error(err);
     }
   };
 
   return (
-    <>
-      <div className="text-light bg-dark p-5">
-        <h1>Search for Books!</h1>
-        <form onSubmit={handleFormSubmit}>
-          <input
-            type="text"
-            placeholder="Search for a book"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            autoComplete="on"
-          />
-          <button type="submit">Search</button>
-        </form>
+    <div>
+      <div className="jumbotron text-light bg-dark">
+        <div className="container">
+          <h1>Search for Books!</h1>
+          <form onSubmit={handleFormSubmit}>
+            <input
+              type="text"
+              placeholder="Search for a book"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <button type="submit">Submit Search</button>
+          </form>
+        </div>
       </div>
-      <div>
-        {searchedBooks.length > 0 &&
-          searchedBooks.map((book) => (
-            <div key={book.bookId}>
-              <h2>{book.title}</h2>
-              <p>{book.authors.join(", ")}</p>
-              <p>{book.description}</p>
-              {Auth.loggedIn() && (
-                <button onClick={() => handleSaveBook(book.bookId)}>
-                  Save this Book!
-                </button>
-              )}
-            </div>
-          ))}
+
+      <div className="container">
+        <h2>
+          {searchedBooks.length
+            ? `Viewing ${searchedBooks.length} results:`
+            : "Search for a book to begin"}
+        </h2>
+        <div className="row">
+          {searchedBooks.map((book) => {
+            return (
+              <div key={book.bookId} className="col-md-4">
+                <div className="card mb-4">
+                  {book.image ? (
+                    <img
+                      src={book.image}
+                      alt={`The cover for ${book.title}`}
+                      className="card-img-top"
+                    />
+                  ) : null}
+                  <div className="card-body">
+                    <h5 className="card-title">{book.title}</h5>
+                    <p className="small">Authors: {book.authors.join(", ")}</p>
+                    <p className="card-text">{book.description}</p>
+                    <button
+                      className="btn btn-primary btn-block"
+                      onClick={() => handleSaveBook(book.bookId)}
+                    >
+                      Save this Book!
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 
