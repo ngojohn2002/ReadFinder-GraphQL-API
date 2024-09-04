@@ -44,6 +44,7 @@ const SignupForm = () => {
             placeholder="Your username"
             value={userFormData.username}
             onChange={handleInputChange}
+            autoComplete="current-username"
           />
           <input
             type="email"
@@ -51,6 +52,7 @@ const SignupForm = () => {
             placeholder="Your email"
             value={userFormData.email}
             onChange={handleInputChange}
+            autoComplete="current-email"
           />
           <input
             type="password"
@@ -58,6 +60,7 @@ const SignupForm = () => {
             placeholder="Your password"
             value={userFormData.password}
             onChange={handleInputChange}
+            autoComplete="current-password"
           />
           <button type="submit">Submit</button>
         </form>
