@@ -2,19 +2,24 @@ import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { ADD_USER } from "../utils/mutations";
 import Auth from "../utils/auth";
-import { Form, Button, Alert } from "react-bootstrap";
+import { Container, Form, Button, Alert } from "react-bootstrap";
 
 const SignupForm = () => {
-  const [userFormData, setUserFormData] = useState({
+  const [formState, setFormState] = useState({
     username: "",
     email: "",
     password: "",
   });
   const [addUser, { error }] = useMutation(ADD_USER);
+  const [showAlert, setShowAlert] = useState(false);
 
-  const handleInputChange = (event) => {
+  const handleChange = (event) => {
     const { name, value } = event.target;
-    setUserFormData({ ...userFormData, [name]: value });
+
+    setFormState({
+      ...formState,
+      [name]: value,
+    });
   };
 
   const handleFormSubmit = async (event) => {
@@ -22,51 +27,82 @@ const SignupForm = () => {
 
     try {
       const { data } = await addUser({
-        variables: { ...userFormData },
+        variables: { ...formState },
       });
 
       Auth.login(data.addUser.token);
     } catch (e) {
       console.error(e);
+      setShowAlert(true);
     }
 
-    setUserFormData({ username: "", email: "", password: "" });
+    setFormState({
+      username: "",
+      email: "",
+      password: "",
+    });
   };
 
   return (
-    <>
-      <div>
-        <h2>Sign Up</h2>
-        <form onSubmit={handleFormSubmit}>
-          <input
+    <Container className="my-4">
+      <Form noValidate onSubmit={handleFormSubmit}>
+        {showAlert && (
+          <Alert
+            variant="danger"
+            onClose={() => setShowAlert(false)}
+            dismissible
+          >
+            Signup failed! Check your information and try again.
+          </Alert>
+        )}
+
+        <Form.Group>
+          <Form.Label>Username</Form.Label>
+          <Form.Control
             type="text"
+            placeholder="Enter username"
             name="username"
-            placeholder="Your username"
-            value={userFormData.username}
-            onChange={handleInputChange}
-            autoComplete="current-username"
+            onChange={handleChange}
+            value={formState.username}
+            required
           />
-          <input
+        </Form.Group>
+
+        <Form.Group>
+          <Form.Label>Email address</Form.Label>
+          <Form.Control
             type="email"
+            placeholder="Enter email"
             name="email"
-            placeholder="Your email"
-            value={userFormData.email}
-            onChange={handleInputChange}
-            autoComplete="current-email"
+            onChange={handleChange}
+            value={formState.email}
+            required
           />
-          <input
+        </Form.Group>
+
+        <Form.Group>
+          <Form.Label>Password</Form.Label>
+          <Form.Control
             type="password"
+            placeholder="Password"
             name="password"
-            placeholder="Your password"
-            value={userFormData.password}
-            onChange={handleInputChange}
-            autoComplete="current-password"
+            onChange={handleChange}
+            value={formState.password}
+            required
           />
-          <button type="submit">Submit</button>
-        </form>
-        {error && <div>Signup failed</div>}
-      </div>
-    </>
+        </Form.Group>
+
+        <Button
+          disabled={
+            !formState.username || !formState.email || !formState.password
+          }
+          type="submit"
+          variant="primary"
+        >
+          Submit
+        </Button>
+      </Form>
+    </Container>
   );
 };
 

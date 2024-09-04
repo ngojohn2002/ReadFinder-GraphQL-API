@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useMutation } from "@apollo/client";
 import { SAVE_BOOK } from "../utils/mutations";
+import Auth from "../utils/auth";
+import { Container, Col, Form, Button, Card, Row } from "react-bootstrap";
 
 const SearchBooks = () => {
   const [searchedBooks, setSearchedBooks] = useState([]);
@@ -20,17 +22,17 @@ const SearchBooks = () => {
       );
 
       if (!response.ok) {
-        throw new Error("something went wrong!");
+        throw new Error("Something went wrong!");
       }
 
       const { items } = await response.json();
-
       const bookData = items.map((book) => ({
         bookId: book.id,
         authors: book.volumeInfo.authors || ["No author to display"],
         title: book.volumeInfo.title,
         description: book.volumeInfo.description,
         image: book.volumeInfo.imageLinks?.thumbnail || "",
+        link: book.volumeInfo.infoLink,
       }));
 
       setSearchedBooks(bookData);
@@ -44,9 +46,14 @@ const SearchBooks = () => {
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
 
     try {
-      await saveBook({
+      const { data } = await saveBook({
         variables: { input: bookToSave },
       });
+
+      if (!data) {
+        throw new Error("Something went wrong!");
+      }
+
       alert("Book saved!");
     } catch (err) {
       console.error(err);
@@ -54,58 +61,65 @@ const SearchBooks = () => {
   };
 
   return (
-    <div>
-      <div className="jumbotron text-light bg-dark">
-        <div className="container">
-          <h1>Search for Books!</h1>
-          <form onSubmit={handleFormSubmit}>
-            <input
-              type="text"
-              placeholder="Search for a book"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
-            <button type="submit">Submit Search</button>
-          </form>
-        </div>
-      </div>
+    <>
+      <Container>
+        <Form onSubmit={handleFormSubmit}>
+          <Row>
+            <Col xs={12} md={8}>
+              <Form.Control
+                name="searchInput"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                type="text"
+                size="lg"
+                placeholder="Search for a book"
+              />
+            </Col>
+            <Col xs={12} md={4}>
+              <Button type="submit" variant="success" size="lg">
+                Submit Search
+              </Button>
+            </Col>
+          </Row>
+        </Form>
+      </Container>
 
-      <div className="container">
+      <Container>
         <h2>
           {searchedBooks.length
             ? `Viewing ${searchedBooks.length} results:`
             : "Search for a book to begin"}
         </h2>
-        <div className="row">
-          {searchedBooks.map((book) => {
-            return (
-              <div key={book.bookId} className="col-md-4">
-                <div className="card mb-4">
-                  {book.image ? (
-                    <img
-                      src={book.image}
-                      alt={`The cover for ${book.title}`}
-                      className="card-img-top"
-                    />
-                  ) : null}
-                  <div className="card-body">
-                    <h5 className="card-title">{book.title}</h5>
-                    <p className="small">Authors: {book.authors.join(", ")}</p>
-                    <p className="card-text">{book.description}</p>
-                    <button
-                      className="btn btn-primary btn-block"
+        <Row>
+          {searchedBooks.map((book) => (
+            <Col key={book.bookId} md={4}>
+              <Card border="dark">
+                {book.image ? (
+                  <Card.Img
+                    src={book.image}
+                    alt={`The cover for ${book.title}`}
+                    variant="top"
+                  />
+                ) : null}
+                <Card.Body>
+                  <Card.Title>{book.title}</Card.Title>
+                  <p className="small">Authors: {book.authors}</p>
+                  <Card.Text>{book.description}</Card.Text>
+                  {Auth.loggedIn() && (
+                    <Button
+                      className="btn-block btn-info"
                       onClick={() => handleSaveBook(book.bookId)}
                     >
-                      Save this Book!
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+                      {book.saved ? "Book Saved!" : "Save this Book!"}
+                    </Button>
+                  )}
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
+    </>
   );
 };
 
