@@ -1,4 +1,5 @@
-const { AuthenticationError } = require("@apollo/server/errors");
+const { ApolloServer } = require("@apollo/server");
+const { AuthenticationError } = require("apollo-server-errors"); // Correct import from apollo-server-errors
 const { User } = require("../models");
 const { signToken } = require("../utils/auth");
 
