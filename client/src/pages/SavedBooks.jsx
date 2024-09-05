@@ -3,6 +3,7 @@ import { Container, Card, Button, Row, Col } from "react-bootstrap";
 import { useMutation, useQuery } from "@apollo/client";
 import { REMOVE_BOOK } from "../utils/mutations";
 import { QUERY_ME } from "../utils/queries";
+import NoImagePlaceholder from "../assets/no-image.png"; // Add your placeholder image path
 
 const SavedBooks = () => {
   const { loading, data } = useQuery(QUERY_ME);
@@ -48,19 +49,17 @@ const SavedBooks = () => {
                     justifyContent: "space-between",
                   }}
                 >
-                  {book.image ? (
-                    <Card.Img
-                      src={book.image}
-                      alt={`The cover for ${book.title}`}
-                      variant="top"
-                      style={{
-                        width: "100%",
-                        height: "auto",
-                        maxHeight: "500px",
-                        objectFit: "cover",
-                      }}
-                    />
-                  ) : null}
+                  <Card.Img
+                    src={book.image || NoImagePlaceholder} // Use placeholder if no image
+                    alt={`The cover for ${book.title}`}
+                    variant="top"
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      maxHeight: "500px",
+                      objectFit: "cover",
+                    }}
+                  />
                   <Card.Body style={{ flexGrow: 1, overflowY: "auto" }}>
                     <Card.Title>{book.title}</Card.Title>
                     <p className="small">Authors: {book.authors.join(", ")}</p>

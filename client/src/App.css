@@ -25,3 +25,10 @@ h6 {
   flex-grow: 1;
   overflow-y: auto;
 }
+
+.book-image {
+  width: 100%; /* Ensures image takes full width of the container */
+  height: 500px; /* Fixed height for all images */
+  object-fit: cover; /* Maintains aspect ratio, covers the container */
+  display: block; /* Removes any potential inline-block space */
+}

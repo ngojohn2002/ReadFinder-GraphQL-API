@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@apollo/client";
 import { SAVE_BOOK } from "../utils/mutations";
 import { QUERY_ME } from "../utils/queries";
 import Auth from "../utils/auth";
+import NoImagePlaceholder from "../assets/no-image.png"; 
 
 const SearchBooks = () => {
   const [searchedBooks, setSearchedBooks] = useState([]);
@@ -30,7 +31,7 @@ const SearchBooks = () => {
         authors: book.volumeInfo.authors || ["No author to display"],
         title: book.volumeInfo.title,
         description: book.volumeInfo.description,
-        image: book.volumeInfo.imageLinks?.thumbnail || "",
+        image: book.volumeInfo.imageLinks?.thumbnail || NoImagePlaceholder, // Use placeholder if no image
       }));
 
       setSearchedBooks(bookData);
@@ -94,19 +95,17 @@ const SearchBooks = () => {
                     justifyContent: "space-between",
                   }}
                 >
-                  {book.image ? (
-                    <Card.Img
-                      src={book.image}
-                      alt={`The cover for ${book.title}`}
-                      variant="top"
-                      style={{
-                        width: "100%",
-                        height: "auto",
-                        maxHeight: "500px",
-                        objectFit: "cover",
-                      }}
-                    />
-                  ) : null}
+                  <Card.Img
+                    src={book.image}
+                    alt={`The cover for ${book.title}`}
+                    variant="top"
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      maxHeight: "500px",
+                      objectFit: "cover",
+                    }}
+                  />
                   <Card.Body style={{ flexGrow: 1, overflowY: "auto" }}>
                     <Card.Title>{book.title}</Card.Title>
                     <p className="small">Authors: {book.authors.join(", ")}</p>
