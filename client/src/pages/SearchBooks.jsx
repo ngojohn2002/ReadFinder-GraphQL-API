@@ -85,29 +85,43 @@ const SearchBooks = () => {
         <Row>
           {searchedBooks.map((book) => {
             return (
-              <Col md="4" key={book.bookId}>
-                <Card>
+              <Col md="4" key={book.bookId} className="my-3">
+                <Card
+                  style={{
+                    height: "800px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                  }}
+                >
                   {book.image ? (
                     <Card.Img
                       src={book.image}
                       alt={`The cover for ${book.title}`}
                       variant="top"
+                      style={{
+                        width: "100%",
+                        height: "auto",
+                        maxHeight: "500px",
+                        objectFit: "cover",
+                      }}
                     />
                   ) : null}
-                  <Card.Body>
+                  <Card.Body style={{ flexGrow: 1, overflowY: "auto" }}>
                     <Card.Title>{book.title}</Card.Title>
                     <p className="small">Authors: {book.authors.join(", ")}</p>
                     <Card.Text>{book.description}</Card.Text>
-                    {Auth.loggedIn() && (
-                      <Button
-                        disabled={book.saved}
-                        onClick={() => handleSaveBook(book.bookId)}
-                        variant={book.saved ? "secondary" : "primary"}
-                      >
-                        {book.saved ? "Book Saved!" : "Save this Book!"}
-                      </Button>
-                    )}
                   </Card.Body>
+                  {Auth.loggedIn() && (
+                    <Button
+                      disabled={book.saved}
+                      onClick={() => handleSaveBook(book.bookId)}
+                      variant={book.saved ? "secondary" : "primary"}
+                      className="m-2"
+                    >
+                      {book.saved ? "Book Saved!" : "Save this Book!"}
+                    </Button>
+                  )}
                 </Card>
               </Col>
             );
