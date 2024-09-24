@@ -1,80 +1,84 @@
-import React from "react";
-import { Container, Card, Button, Row, Col } from "react-bootstrap";
-import { useMutation, useQuery } from "@apollo/client";
-import { REMOVE_BOOK } from "../utils/mutations";
+import React, { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@apollo/client";
 import { QUERY_ME } from "../utils/queries";
-import NoImagePlaceholder from "../assets/no-image.png"; // Add your placeholder image path
+import { REMOVE_BOOK } from "../utils/mutations";
+import Auth from "../utils/auth";
+import { Container, Card, Button, Row, Col } from "react-bootstrap";
 
 const SavedBooks = () => {
   const { loading, data } = useQuery(QUERY_ME);
-  const [removeBook] = useMutation(REMOVE_BOOK);
+  const [removeBook] = useMutation(REMOVE_BOOK, {
+    refetchQueries: [{ query: QUERY_ME }],
+  });
 
   const userData = data?.me || {};
+  const [savedBookIds, setSavedBookIds] = useState([]);
+
+  useEffect(() => {
+    const savedBooks = Auth.getSavedBookIds();
+    if (savedBooks) {
+      setSavedBookIds(savedBooks);
+    }
+  }, [data]);
 
   const handleRemoveBook = async (bookId) => {
     try {
       await removeBook({
         variables: { bookId },
-        refetchQueries: [{ query: QUERY_ME }],
       });
+
+      const updatedSavedBookIds = savedBookIds.filter(
+        (savedBookId) => savedBookId !== bookId
+      );
+      setSavedBookIds(updatedSavedBookIds);
+      Auth.saveBookIds(updatedSavedBookIds);
     } catch (err) {
       console.error(err);
     }
   };
 
   if (loading) {
-    return <h2>LOADING...</h2>;
+    return <h2>Loading...</h2>;
   }
 
   return (
     <>
-      <Container className="my-4">
-        <h1>Viewing saved books!</h1>
+      <Container>
         <h2>
-          {userData.savedBooks.length
+          {userData.savedBooks?.length
             ? `Viewing ${userData.savedBooks.length} saved ${
                 userData.savedBooks.length === 1 ? "book" : "books"
               }:`
             : "You have no saved books!"}
         </h2>
         <Row>
-          {userData.savedBooks.map((book) => {
-            return (
-              <Col md="4" key={book.bookId} className="my-3">
-                <Card
-                  style={{
-                    height: "800px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
+          {userData.savedBooks?.map((book) => (
+            <Col md="4" key={book.bookId}>
+              <Card
+                className="mb-3"
+                style={{ height: "400px", overflowY: "auto" }}
+              >
+                {book.image ? (
                   <Card.Img
-                    src={book.image || NoImagePlaceholder} // Use placeholder if no image
+                    src={book.image}
                     alt={`The cover for ${book.title}`}
                     variant="top"
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      maxHeight: "500px",
-                      objectFit: "cover",
-                    }}
                   />
-                  <Card.Body style={{ flexGrow: 1, overflowY: "auto" }}>
-                    <Card.Title>{book.title}</Card.Title>
-                    <p className="small">Authors: {book.authors.join(", ")}</p>
-                    <Card.Text>{book.description}</Card.Text>
-                  </Card.Body>
+                ) : null}
+                <Card.Body>
+                  <Card.Title>{book.title}</Card.Title>
+                  <p className="small">Authors: {book.authors}</p>
+                  <Card.Text>{book.description}</Card.Text>
                   <Button
                     className="btn-block btn-danger"
                     onClick={() => handleRemoveBook(book.bookId)}
                   >
                     Remove this Book!
                   </Button>
-                </Card>
-              </Col>
-            );
-          })}
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
         </Row>
       </Container>
     </>

@@ -1,59 +1,41 @@
-import React, { useState } from "react";
-import { Container, Col, Form, Button, Card, Row } from "react-bootstrap";
-import { useMutation, useQuery } from "@apollo/client";
+import React, { useState, useEffect } from "react";
+import { useMutation } from "@apollo/client";
 import { SAVE_BOOK } from "../utils/mutations";
-import { QUERY_ME } from "../utils/queries";
 import Auth from "../utils/auth";
-import NoImagePlaceholder from "../assets/no-image.png"; 
+import { Container, Card, Button, Row, Col, Form } from "react-bootstrap";
 
 const SearchBooks = () => {
   const [searchedBooks, setSearchedBooks] = useState([]);
   const [searchInput, setSearchInput] = useState("");
+  const [savedBookIds, setSavedBookIds] = useState([]);
 
   const [saveBook] = useMutation(SAVE_BOOK);
-  const { data: userData } = useQuery(QUERY_ME);
+
+  useEffect(() => {
+    const savedBooks = Auth.getSavedBookIds();
+    if (savedBooks) {
+      setSavedBookIds(savedBooks);
+    }
+  }, []);
 
   const handleFormSubmit = async (event) => {
     event.preventDefault();
-
-    if (!searchInput) {
-      return false;
-    }
-
-    try {
-      const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${searchInput}`
-      );
-      const { items } = await response.json();
-
-      const bookData = items.map((book) => ({
-        bookId: book.id,
-        authors: book.volumeInfo.authors || ["No author to display"],
-        title: book.volumeInfo.title,
-        description: book.volumeInfo.description,
-        image: book.volumeInfo.imageLinks?.thumbnail || NoImagePlaceholder, // Use placeholder if no image
-      }));
-
-      setSearchedBooks(bookData);
-      setSearchInput("");
-    } catch (err) {
-      console.error(err);
-    }
+    // Implement your logic to fetch books from Google Books API here.
+    // Update `searchedBooks` state with the fetched books.
   };
 
   const handleSaveBook = async (bookId) => {
     const bookToSave = searchedBooks.find((book) => book.bookId === bookId);
 
+    if (!bookToSave) return;
+
     try {
-      await saveBook({
-        variables: { input: bookToSave },
-        refetchQueries: [{ query: QUERY_ME }],
+      const { data } = await saveBook({
+        variables: { bookData: bookToSave },
       });
 
-      const updatedBooks = searchedBooks.map((book) =>
-        book.bookId === bookId ? { ...book, saved: true } : book
-      );
-      setSearchedBooks(updatedBooks);
+      setSavedBookIds([...savedBookIds, bookToSave.bookId]);
+      Auth.saveBookIds(savedBookIds);
     } catch (err) {
       console.error(err);
     }
@@ -61,7 +43,7 @@ const SearchBooks = () => {
 
   return (
     <>
-      <Container>
+      <Container fluid className="py-4 text-light bg-dark">
         <h1>Search for Books!</h1>
         <Form onSubmit={handleFormSubmit}>
           <Row>
@@ -82,49 +64,47 @@ const SearchBooks = () => {
             </Col>
           </Row>
         </Form>
+      </Container>
 
+      <Container>
+        <h2>
+          {searchedBooks.length
+            ? `Viewing ${searchedBooks.length} results:`
+            : "Search for a book to begin"}
+        </h2>
         <Row>
-          {searchedBooks.map((book) => {
-            return (
-              <Col md="4" key={book.bookId} className="my-3">
-                <Card
-                  style={{
-                    height: "800px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                  }}
-                >
+          {searchedBooks.map((book) => (
+            <Col md="4" key={book.bookId}>
+              <Card
+                className="mb-3"
+                style={{ height: "400px", overflowY: "auto" }}
+              >
+                {book.image ? (
                   <Card.Img
                     src={book.image}
                     alt={`The cover for ${book.title}`}
                     variant="top"
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      maxHeight: "500px",
-                      objectFit: "cover",
-                    }}
                   />
-                  <Card.Body style={{ flexGrow: 1, overflowY: "auto" }}>
-                    <Card.Title>{book.title}</Card.Title>
-                    <p className="small">Authors: {book.authors.join(", ")}</p>
-                    <Card.Text>{book.description}</Card.Text>
-                  </Card.Body>
+                ) : null}
+                <Card.Body>
+                  <Card.Title>{book.title}</Card.Title>
+                  <p className="small">Authors: {book.authors}</p>
+                  <Card.Text>{book.description}</Card.Text>
                   {Auth.loggedIn() && (
                     <Button
-                      disabled={book.saved}
+                      disabled={savedBookIds?.some((id) => id === book.bookId)}
+                      className="btn-block btn-info"
                       onClick={() => handleSaveBook(book.bookId)}
-                      variant={book.saved ? "secondary" : "primary"}
-                      className="m-2"
                     >
-                      {book.saved ? "Book Saved!" : "Save this Book!"}
+                      {savedBookIds?.some((id) => id === book.bookId)
+                        ? "Book Saved"
+                        : "Save this Book!"}
                     </Button>
                   )}
-                </Card>
-              </Col>
-            );
-          })}
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
         </Row>
       </Container>
     </>
